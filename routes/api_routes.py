@@ -7,7 +7,9 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 @api_bp.route('/uang_masuk_harian', methods=['GET'])
 def uang_masuk_harian():
-    """Mengambil total uang masuk hari ini"""
+    """
+    Mengambil total akumulasi uang masuk pada tanggal hari ini.
+    """
     try:
         with get_db_connection().cursor() as cursor:
             cursor.execute("""
@@ -25,7 +27,9 @@ def uang_masuk_harian():
 
 @api_bp.route('/uang_masuk_bulanan', methods=['GET'])
 def uang_masuk_bulanan():
-    """Mengambil total uang masuk bulan ini dan memperbarui tb_bulanan"""
+    """
+    Mengambil total akumulasi uang masuk pada bulan berjalan dan memperbarui tabel bulanan.
+    """
     try:
         with get_db_connection().cursor() as cursor:
             cursor.execute("""
@@ -58,7 +62,9 @@ def uang_masuk_bulanan():
 
 @api_bp.route('/total_tabungan', methods=['GET'])
 def total_tabungan():
-    """Mengambil sisa total tabungan (Total Uang Masuk - Total Uang Keluar)"""
+    """
+    Mengambil sisa total saldo tabungan dari akumulasi uang masuk dikurangi uang keluar.
+    """
     try:
         with get_db_connection().cursor() as cursor:
             cursor.execute("SELECT COALESCE(SUM(uang_masuk), 0) AS total_masuk FROM tb_tabungan")
@@ -76,7 +82,9 @@ def total_tabungan():
 
 @api_bp.route('/proses_pengurangan', methods=['POST'])
 def proses_pengurangan():
-    """Mencatat pengambilan uang (uang keluar)"""
+    """
+    Mencatat transaksi pengeluaran tabungan ke database.
+    """
     try:
         jumlah = request.form.get('jumlah') or (request.get_json() or {}).get('jumlah')
         if not jumlah or int(jumlah) <= 0:
@@ -98,7 +106,9 @@ def proses_pengurangan():
 
 @api_bp.route('/ambil_semua_tabungan', methods=['POST'])
 def ambil_semua_tabungan():
-    """Menghapus seluruh data tabungan (reset)"""
+    """
+    Mereset dan mengosongkan seluruh riwayat data tabungan.
+    """
     try:
         with get_db_connection().cursor() as cursor:
             cursor.execute("DELETE FROM tb_tabungan")
@@ -113,7 +123,9 @@ def ambil_semua_tabungan():
 
 @api_bp.route('/ambil_uang_masuk', methods=['GET'])
 def ambil_uang_masuk():
-    """Mengambil daftar riwayat uang masuk dalam format JSON"""
+    """
+    Mengambil daftar riwayat transaksi uang masuk.
+    """
     try:
         with get_db_connection().cursor() as cursor:
             cursor.execute("SELECT id, tanggal, waktu, uang_masuk FROM tb_tabungan ORDER BY id DESC")
@@ -121,7 +133,7 @@ def ambil_uang_masuk():
             
             data = []
             for row in rows:
-                tgl = row['tanggal'].strftime('%d-%m-%Y') if hasattr(row['tanggal'], 'strftime') else str(row['tanggal'])
+                tgl = row['tanggal'].strftime('%d/%m/%Y') if hasattr(row['tanggal'], 'strftime') else str(row['tanggal'])
                 wkt = str(row['waktu'])[:5] if row['waktu'] else ''
                 data.append({
                     'id': row['id'],
@@ -137,7 +149,9 @@ def ambil_uang_masuk():
 
 @api_bp.route('/ambil_uang_keluar', methods=['GET'])
 def ambil_uang_keluar():
-    """Mengambil daftar riwayat uang keluar dalam format JSON"""
+    """
+    Mengambil daftar riwayat transaksi uang keluar.
+    """
     try:
         with get_db_connection().cursor() as cursor:
             cursor.execute("SELECT id, tanggal, waktu, uang_keluar FROM tb_uang_keluar ORDER BY id DESC")
@@ -145,7 +159,7 @@ def ambil_uang_keluar():
             
             data = []
             for row in rows:
-                tgl = row['tanggal'].strftime('%d-%m-%Y') if hasattr(row['tanggal'], 'strftime') else str(row['tanggal'])
+                tgl = row['tanggal'].strftime('%d/%m/%Y') if hasattr(row['tanggal'], 'strftime') else str(row['tanggal'])
                 wkt = str(row['waktu'])[:5] if row['waktu'] else ''
                 data.append({
                     'id': row['id'],
@@ -161,7 +175,9 @@ def ambil_uang_keluar():
 
 @api_bp.route('/chart_data', methods=['GET'])
 def chart_data():
-    """Mengembalikan data bulanan untuk grafik Chart.js"""
+    """
+    Mengambil agregasi data bulanan untuk visualisasi grafik.
+    """
     try:
         with get_db_connection().cursor() as cursor:
             cursor.execute("SELECT bulan, jumlah_uang FROM tb_bulanan ORDER BY id ASC")

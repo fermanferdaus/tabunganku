@@ -4,12 +4,13 @@ import pymysql.cursors
 from flask import g
 from dotenv import load_dotenv
 
-# BASE_DIR menunjuk ke root folder app_render
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 def get_db_config():
-    """Mengembalikan konfigurasi database murni dari Environment Variables (.env / Cloud)"""
+    """
+    Mengambil konfigurasi koneksi database MySQL dari environment variables.
+    """
     config = {
         'host': os.environ['DB_HOST'],
         'user': os.environ['DB_USER'],
@@ -25,19 +26,25 @@ def get_db_config():
     return config
 
 def get_db_connection():
-    """Membuat dan mengembalikan koneksi DB pada request context"""
+    """
+    Membuka dan mengembalikan koneksi database aktif untuk context request berjalan.
+    """
     if 'db' not in g:
         g.db = pymysql.connect(**get_db_config())
     return g.db
 
 def close_db_connection(e=None):
-    """Menutup koneksi database setelah request selesai"""
+    """
+    Menutup koneksi database aktif setelah siklus request selesai.
+    """
     db = g.pop('db', None)
     if db is not None:
         db.close()
 
 def init_db():
-    """Memastikan skema tabel (tb_tabungan, tb_uang_keluar, tb_bulanan) tersedia"""
+    """
+    Memastikan inisialisasi skema tabel tabungan, uang keluar, dan rekap bulanan pada database.
+    """
     try:
         conn = pymysql.connect(**get_db_config())
         with conn.cursor() as cursor:
@@ -69,6 +76,6 @@ def init_db():
             """)
             conn.commit()
         conn.close()
-        print("[DB] Berhasil terhubung ke database via .env / Environment Variables.")
+        print("[DB] Berhasil terhubung ke database.")
     except Exception as e:
         print(f"[DB Error] Gagal koneksi database: {e}")

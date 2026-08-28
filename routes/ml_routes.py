@@ -5,7 +5,9 @@ from services.ml_service import prediksi_nominal_stacking
 ml_bp = Blueprint('ml', __name__)
 
 def hitung_total_tabungan():
-    """Menghitung total tabungan dari database (Uang Masuk - Uang Keluar)"""
+    """
+    Menghitung sisa saldo tabungan bersih dari akumulasi uang masuk dikurangi uang keluar.
+    """
     with get_db_connection().cursor() as cursor:
         cursor.execute("SELECT COALESCE(SUM(uang_masuk), 0) AS total_masuk FROM tb_tabungan")
         masuk = int(cursor.fetchone()['total_masuk'])
@@ -17,7 +19,10 @@ def hitung_total_tabungan():
 
 @ml_bp.route('/prediksi', methods=['POST'])
 def prediksi():
-    """Endpoint untuk prediksi nominal berbasis RGB dan simpan ke database"""
+    """
+    Menerima input nilai warna Red Green Blue dari sensor perangkat,
+    menjalankan prediksi pecahan nominal uang, dan mencatat transaksi ke database.
+    """
     data = request.get_json()
     if not data:
         return jsonify({'error': 'Payload JSON tidak ditemukan'}), 400
@@ -48,7 +53,9 @@ def prediksi():
 
 @ml_bp.route('/total_tabungan', methods=['GET'])
 def total_tabungan_ml():
-    """Endpoint bawaan ML untuk mengambil total sisa tabungan"""
+    """
+    Mengambil data total sisa tabungan aktif.
+    """
     try:
         total = hitung_total_tabungan()
         return jsonify({'total_tabungan': total}), 200
