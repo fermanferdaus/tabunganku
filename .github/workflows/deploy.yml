@@ -59,8 +59,14 @@ jobs:
           envs: PRODUCTION_ENV
           script: |
             set -e
-            echo "==> Navigating to project directory on VPS..."
-            cd ${{ secrets.VPS_PROJECT_PATH }}
+            echo "==> Preparing project directory on VPS..."
+            if [ ! -d "${{ secrets.VPS_PROJECT_PATH }}/.git" ]; then
+              echo "==> Repository not found. Initializing and cloning..."
+              mkdir -p "${{ secrets.VPS_PROJECT_PATH }}"
+              git clone https://github.com/${{ github.repository }}.git "${{ secrets.VPS_PROJECT_PATH }}"
+            fi
+
+            cd "${{ secrets.VPS_PROJECT_PATH }}"
 
             echo "==> Pulling latest changes from Git..."
             git fetch --all
