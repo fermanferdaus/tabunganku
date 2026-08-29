@@ -125,6 +125,7 @@ python main.py
 Akses `http://localhost:5000` melalui browser.
 
 **Kredensial Default:**
+
 - Username: `admin`
 - Password: `admin123`
 
@@ -137,6 +138,7 @@ Akses `http://localhost:5000` melalui browser.
 Endpoint ini dipanggil langsung oleh ESP32 / Arduino tanpa token JWT:
 
 #### `POST /prediksi`
+
 Inference nominal uang berdasarkan nilai sensor TCS3200.
 
 - **Request Body:**
@@ -157,6 +159,7 @@ Inference nominal uang berdasarkan nilai sensor TCS3200.
   ```
 
 #### `GET /total_tabungan`
+
 Mengambil sisa total saldo tabungan untuk kebutuhan display hardware.
 
 - **Response `200 OK`:**
@@ -172,13 +175,16 @@ Mengambil sisa total saldo tabungan untuk kebutuhan display hardware.
 ### 2. Autentikasi
 
 #### `POST /login`
+
 - **Request Form:** `username`, `password`
 - **Behavior:** Set cookie `access_token` (`HttpOnly`, `SameSite=Lax`, max-age 86400s) dan redirect ke `/dashboard`.
 
 #### `GET /logout`
+
 - **Behavior:** Menghapus cookie `access_token` dan redirect ke `/login`.
 
 #### `POST /api/change-password` (Protected)
+
 - **Headers:** `Content-Type: application/json`
 - **Request Body:**
   ```json
@@ -202,18 +208,19 @@ Mengambil sisa total saldo tabungan untuk kebutuhan display hardware.
 
 ### 3. Dashboard API (Protected via JWT)
 
-| Method | Endpoint | Deskripsi |
-|---|---|---|
-| `GET` | `/api/uang_masuk_harian` | Total nominal uang masuk pada tanggal berjalan |
-| `GET` | `/api/uang_masuk_bulanan` | Total nominal uang masuk pada bulan berjalan |
-| `GET` | `/api/total_tabungan` | Akumulasi total saldo aktif |
-| `GET` | `/api/ambil_uang_masuk` | List riwayat transaksi masuk (tanggal, waktu WIB, nominal) |
-| `GET` | `/api/ambil_uang_keluar` | List riwayat penarikan saldo (tanggal, waktu WIB, nominal) |
-| `GET` | `/api/chart_data` | Data deret waktu per bulan untuk visualisasi grafik |
-| `POST` | `/api/proses_pengurangan` | Input penarikan saldo parsial (`{"quantity": 50000}`) |
-| `POST` | `/api/ambil_semua_tabungan` | Penarikan seluruh sisa saldo tabungan |
+| Method | Endpoint                    | Deskripsi                                                  |
+| ------ | --------------------------- | ---------------------------------------------------------- |
+| `GET`  | `/api/uang_masuk_harian`    | Total nominal uang masuk pada tanggal berjalan             |
+| `GET`  | `/api/uang_masuk_bulanan`   | Total nominal uang masuk pada bulan berjalan               |
+| `GET`  | `/api/total_tabungan`       | Akumulasi total saldo aktif                                |
+| `GET`  | `/api/ambil_uang_masuk`     | List riwayat transaksi masuk (tanggal, waktu WIB, nominal) |
+| `GET`  | `/api/ambil_uang_keluar`    | List riwayat penarikan saldo (tanggal, waktu WIB, nominal) |
+| `GET`  | `/api/chart_data`           | Data deret waktu per bulan untuk visualisasi grafik        |
+| `POST` | `/api/proses_pengurangan`   | Input penarikan saldo parsial (`{"quantity": 50000}`)      |
+| `POST` | `/api/ambil_semua_tabungan` | Penarikan seluruh sisa saldo tabungan                      |
 
 Format standard JSON response:
+
 ```json
 {
   "success": true,
@@ -238,58 +245,8 @@ flake8 --config .flake8 config/ controllers/ middleware/ services/ utils/ valida
 ```
 
 Cakupan pengujian (58 test cases):
+
 - Unit test autentikasi: flow login, token signing/decoding, session guard, auto-upgrade password hash, proteksi salt corruption.
 - Unit test API: seluruh endpoint Protected & IoT hardware.
 - Unit test validators: edge case validasi payload login dan pergantian password.
 - Unit test formatters: parsing date object, string ISO, waktu WIB, dan Rupiah.
-
----
-
-## Deployment Produksi (Docker & GitHub Actions CI/CD)
-
-### 1. Daftar GitHub Secrets (Settings > Secrets and variables > Actions)
-
-Untuk mengaktifkan otomatisasi deployment ke VPS, daftarkan secrets berikut di repositori GitHub:
-
-| Secret Name | Wajib | Deskripsi / Nilai |
-|---|---|---|
-| `VPS_HOST` | Ya | IP address atau domain server VPS |
-| `VPS_USERNAME` | Ya | User login SSH VPS (`root` / `ubuntu`) |
-| `VPS_SSH_KEY` | Ya | Private SSH Key (format OpenSSH/RSA/Ed25519) |
-| `VPS_PORT` | Opsional | Port SSH server (default: `22`) |
-| `VPS_PROJECT_PATH` | Opsional | Lokasi absolut direktori proyek di VPS (contoh: `/home/prod/apps/tabunganku`) |
-| `PRODUCTION_ENV` | Ya | Seluruh isi variabel environment produksi (di-paste langsung) |
-
-Contoh isi secret `PRODUCTION_ENV`:
-```env
-APP_ENV=production
-FLASK_DEBUG=false
-PORT=5000
-SECRET_KEY=ganti-dengan-secret-key-acak-minimal-32-karakter!!
-GUNICORN_WORKERS=2
-GUNICORN_THREADS=4
-
-DB_HOST=mysql
-DB_PORT=3306
-DB_ROOT_PASSWORD=root_secure_password_123
-DB_USER=tabungan_user
-DB_PASSWORD=tabungan_secure_password_123
-DB_NAME=db_tabungan
-DB_SSL=false
-
-JWT_SECRET_KEY=ganti-dengan-jwt-secret-acak-minimal-32-karakter!!
-JWT_EXPIRY_HOURS=24
-```
-
-### 2. Manual Run via Docker Compose
-
-```bash
-# Build dan jalankan seluruh container
-docker compose up -d --build
-
-# Periksa status container
-docker compose ps
-
-# Matikan seluruh container
-docker compose down
-```
