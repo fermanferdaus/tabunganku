@@ -7,13 +7,14 @@ from matplotlib.colors import rgb_to_hsv
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    stacking_model = joblib.load(os.path.join(BASE_DIR, 'model/stacking_model.pkl'))
-    label_encoder = joblib.load(os.path.join(BASE_DIR, 'model/label_encoder.pkl'))
-    scaler = joblib.load(os.path.join(BASE_DIR, 'model/scaler.pkl'))
+    stacking_model = joblib.load(os.path.join(BASE_DIR, 'models/stacking_model.pkl'))
+    label_encoder = joblib.load(os.path.join(BASE_DIR, 'models/label_encoder.pkl'))
+    scaler = joblib.load(os.path.join(BASE_DIR, 'models/scaler.pkl'))
     print("[ML Service] Model Stacking Ensemble dan preprocessors berhasil dimuat.")
 except Exception as e:
     print(f"[ML Service Warning] Gagal memuat file model: {e}")
     stacking_model, label_encoder, scaler = None, None, None
+
 
 def extract_features(red, green, blue):
     """
@@ -69,6 +70,7 @@ def extract_features(red, green, blue):
             'Intensity': total, 'Contrast': contrast,
             'Hue': hue, 'Saturation': sat, 'Brightness': bri
         }])
+
 
 def prediksi_nominal_stacking(red, green, blue):
     """
