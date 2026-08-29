@@ -150,4 +150,3 @@ class TestAPIWithAuth:
         row = data['data'][0]
         assert row['tanggal'] == '12 November 2020'
         assert row['waktu'] == '14:30 WIB'
-
