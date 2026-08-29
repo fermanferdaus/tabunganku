@@ -1,43 +1,43 @@
-import os
 import pymysql
 import pymysql.cursors
+import bcrypt
 from flask import g
-from dotenv import load_dotenv
+from config.settings import Config
 
-# BASE_DIR menunjuk ke root folder app_render
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 def get_db_config():
-    """Mengembalikan konfigurasi database murni dari Environment Variables (.env / Cloud)"""
+    """Konfigurasi koneksi database MySQL dari Config."""
     config = {
-        'host': os.environ['DB_HOST'],
-        'user': os.environ['DB_USER'],
-        'password': os.environ['DB_PASSWORD'],
-        'database': os.environ['DB_NAME'],
-        'port': int(os.environ['DB_PORT']),
+        'host': Config.DB_HOST,
+        'user': Config.DB_USER,
+        'password': Config.DB_PASSWORD,
+        'database': Config.DB_NAME,
+        'port': Config.DB_PORT,
         'cursorclass': pymysql.cursors.DictCursor
     }
-    
-    if os.environ.get('DB_SSL', 'false').lower() == 'true':
+
+    if Config.DB_SSL:
         config['ssl'] = {'ssl': {}}
-        
+
     return config
 
+
 def get_db_connection():
-    """Membuat dan mengembalikan koneksi DB pada request context"""
+    """Koneksi database aktif untuk context request berjalan."""
     if 'db' not in g:
         g.db = pymysql.connect(**get_db_config())
     return g.db
 
+
 def close_db_connection(e=None):
-    """Menutup koneksi database setelah request selesai"""
+    """Menutup koneksi database setelah request selesai."""
     db = g.pop('db', None)
     if db is not None:
         db.close()
 
+
 def init_db():
-    """Memastikan skema tabel (tb_tabungan, tb_uang_keluar, tb_bulanan) tersedia"""
+    """Inisialisasi skema tabel dan migrasi password ke bcrypt."""
     try:
         conn = pymysql.connect(**get_db_config())
         with conn.cursor() as cursor:
@@ -67,8 +67,49 @@ def init_db():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS tb_login (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    username VARCHAR(50) NOT NULL,
+                    password VARCHAR(255) NOT NULL
+                );
+            """)
+
+            # Migrasi: perbesar kolom password jika masih VARCHAR(50)
+            cursor.execute("""
+                ALTER TABLE tb_login MODIFY COLUMN password VARCHAR(255) NOT NULL
+            """)
+
+            # Auto-hash password plaintext atau hash terpotong (< 60 chars) ke bcrypt
+            cursor.execute("SELECT id, password FROM tb_login")
+            rows = cursor.fetchall()
+            for row in rows:
+                pw = row['password']
+                is_valid = (
+                    isinstance(pw, str)
+                    and len(pw) == 60
+                    and (pw.startswith('$2b$') or pw.startswith('$2a$') or pw.startswith('$2y$'))
+                )
+                if not is_valid:
+                    pw_bytes = str(pw).encode('utf-8')[:72]
+                    hashed = bcrypt.hashpw(
+                        pw_bytes, bcrypt.gensalt()
+                    ).decode('utf-8')
+                    cursor.execute(
+                        "UPDATE tb_login SET password = %s WHERE id = %s",
+                        (hashed, row['id'])
+                    )
+
+            # Jika tb_login kosong, seed user admin default dengan password admin123
+            if not rows:
+                default_hash = bcrypt.hashpw(b'admin123', bcrypt.gensalt()).decode('utf-8')
+                cursor.execute(
+                    "INSERT INTO tb_login (username, password) VALUES (%s, %s)",
+                    ('admin', default_hash)
+                )
+
             conn.commit()
         conn.close()
-        print("[DB] Berhasil terhubung ke database via .env / Environment Variables.")
+        print("[DB] Terhubung ke database. Skema dan password siap.")
     except Exception as e:
         print(f"[DB Error] Gagal koneksi database: {e}")

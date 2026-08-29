@@ -1,0 +1,83 @@
+name: Build & Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Lint & Automated Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Flake8 Linter
+        run: |
+          flake8 --config .flake8 config/ controllers/ middleware/ services/ utils/ validators/ tests/ main.py
+
+      - name: Run Pytest Suite
+        run: |
+          pytest tests/ -v
+
+  deploy:
+    name: Deploy to Production VPS
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          envs: PRODUCTION_ENV
+          script: |
+            set -e
+            echo "==> Navigating to project directory on VPS..."
+            cd ${{ secrets.VPS_PROJECT_PATH }}
+
+            echo "==> Pulling latest changes from Git..."
+            git fetch --all
+            git reset --hard origin/main
+
+            echo "==> Writing .env on VPS from GitHub Secret (PRODUCTION_ENV)..."
+            printf "%s\n" "$PRODUCTION_ENV" > .env
+            chmod 600 .env
+
+            echo "==> Building and restarting Docker containers..."
+            docker compose down --remove-orphans
+            docker compose up -d --build
+
+            echo "==> Cleaning up unused Docker images..."
+            docker image prune -f
+
+            echo "==> Verifying container status..."
+            sleep 5
+            docker ps --filter "name=tabunganku"
+            echo "==> Deployment to VPS completed successfully!"

@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Tabunganku{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Inter", "sans-serif"] },
+            colors: {
+              primary: {
+                50: "#eff6ff",
+                100: "#dbeafe",
+                200: "#bfdbfe",
+                300: "#93c5fd",
+                400: "#60a5fa",
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+                800: "#1e40af",
+                900: "#1e3a8a",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .dropdown-menu {
+        display: none;
+      }
+      .dropdown-menu.show {
+        display: block;
+      }
+    </style>
+    {% block head %}{% endblock %}
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Floating Header -->
+    <header
+      class="fixed top-4 left-4 right-4 z-50 px-4 sm:px-6 lg:px-4 mx-auto"
+    >
+      <div
+        class="bg-white/95 backdrop-blur-md rounded-xl border border-gray-200/80 shadow-md px-4 sm:px-6"
+      >
+        <div class="flex items-center justify-between h-16">
+          <!-- Logo -->
+          <a href="/dashboard" class="flex items-center">
+            <img
+              src="{{ url_for('static', filename='img/logo.png') }}"
+              alt="Tabunganku"
+              class="h-8 w-auto object-contain"
+            />
+          </a>
+
+          <!-- Profile Dropdown -->
+          <div class="relative">
+            <button
+              id="profileBtn"
+              class="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-gray-100/80 transition-colors"
+            >
+              <img
+                src="{{ url_for('static', filename='img/profile.svg') }}"
+                alt="Profile"
+                class="w-8 h-8 rounded-full object-cover border border-gray-200"
+              />
+              <span class="text-sm font-medium text-gray-700 hidden sm:block"
+                >{{ user.username if user else 'Admin' }}</span
+              >
+              <svg
+                class="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+
+            <div
+              id="profileDropdown"
+              class="dropdown-menu absolute right-0 mt-2 w-56 bg-white rounded-xl border border-gray-200 shadow-xl py-1"
+            >
+              <div class="px-4 py-3 border-b border-gray-100">
+                <p class="text-sm font-medium text-gray-800">
+                  {{ user.username if user else 'Admin' }}
+                </p>
+                <p class="text-xs text-gray-500">Administrator</p>
+              </div>
+              <button
+                id="openChangePasswordBtn"
+                class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+              >
+                <svg
+                  class="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                  />
+                </svg>
+                Ganti Password
+              </button>
+              <div class="border-t border-gray-100"></div>
+              <a
+                href="/logout"
+                class="block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="fixed inset-0 z-[60] hidden">
+      <div class="fixed inset-0 bg-black/40" id="modalOverlay"></div>
+      <div class="fixed inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md relative">
+          <div
+            class="px-6 py-4 border-b border-gray-200 flex items-center justify-between"
+          >
+            <h3 class="text-lg font-semibold text-gray-800">Ganti Password</h3>
+            <button
+              id="closeModalBtn"
+              class="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <form id="changePasswordForm" class="px-6 py-5 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Password Lama</label
+              >
+              <input
+                type="password"
+                name="old_password"
+                id="oldPassword"
+                required
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Password Baru</label
+              >
+              <input
+                type="password"
+                name="new_password"
+                id="newPassword"
+                required
+                minlength="4"
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Konfirmasi Password Baru</label
+              >
+              <input
+                type="password"
+                name="confirm_password"
+                id="confirmPassword"
+                required
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <div
+              id="passwordError"
+              class="hidden text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg"
+            ></div>
+            <div
+              id="passwordSuccess"
+              class="hidden text-sm text-green-600 bg-green-50 px-3 py-2 rounded-lg"
+            ></div>
+          </form>
+          <div
+            class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3"
+          >
+            <button
+              id="cancelModalBtn"
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Batal
+            </button>
+            <button
+              id="submitPasswordBtn"
+              type="button"
+              class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Simpan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="pt-28 pb-8 px-4 sm:px-6 lg:px-8 w-full mx-auto">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 bg-white mt-auto">
+      <div class="max-w-7xl mx-auto px-4 py-4 text-center">
+        <span class="text-sm text-gray-500"
+          >Copyright &copy; Tabunganku 2026</span
+        >
+      </div>
+    </footer>
+
+    <script>
+      // Profile dropdown toggle
+      const profileBtn = document.getElementById("profileBtn");
+      const profileDropdown = document.getElementById("profileDropdown");
+      profileBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle("show");
+      });
+      document.addEventListener("click", () =>
+        profileDropdown.classList.remove("show"),
+      );
+
+      // Change password modal
+      const modal = document.getElementById("changePasswordModal");
+      const openBtn = document.getElementById("openChangePasswordBtn");
+      const closeBtn = document.getElementById("closeModalBtn");
+      const cancelBtn = document.getElementById("cancelModalBtn");
+      const overlay = document.getElementById("modalOverlay");
+      const submitBtn = document.getElementById("submitPasswordBtn");
+
+      function openModal() {
+        modal.classList.remove("hidden");
+        profileDropdown.classList.remove("show");
+      }
+      function closeModal() {
+        modal.classList.add("hidden");
+        document.getElementById("changePasswordForm").reset();
+        document.getElementById("passwordError").classList.add("hidden");
+        document.getElementById("passwordSuccess").classList.add("hidden");
+      }
+
+      openBtn.addEventListener("click", openModal);
+      closeBtn.addEventListener("click", closeModal);
+      cancelBtn.addEventListener("click", closeModal);
+      overlay.addEventListener("click", closeModal);
+
+      submitBtn.addEventListener("click", async () => {
+        const errEl = document.getElementById("passwordError");
+        const succEl = document.getElementById("passwordSuccess");
+        errEl.classList.add("hidden");
+        succEl.classList.add("hidden");
+
+        const oldPw = document.getElementById("oldPassword").value;
+        const newPw = document.getElementById("newPassword").value;
+        const confirmPw = document.getElementById("confirmPassword").value;
+
+        if (newPw !== confirmPw) {
+          errEl.textContent = "Konfirmasi password tidak cocok.";
+          errEl.classList.remove("hidden");
+          return;
+        }
+        if (newPw.length < 4) {
+          errEl.textContent = "Password baru minimal 4 karakter.";
+          errEl.classList.remove("hidden");
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/change-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              old_password: oldPw,
+              new_password: newPw,
+              confirm_password: confirmPw,
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            succEl.textContent = data.message;
+            succEl.classList.remove("hidden");
+            setTimeout(closeModal, 1500);
+          } else {
+            errEl.textContent = data.message;
+            errEl.classList.remove("hidden");
+          }
+        } catch (err) {
+          errEl.textContent = "Gagal menghubungi server.";
+          errEl.classList.remove("hidden");
+        }
+      });
+    </script>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

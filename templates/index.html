@@ -1,331 +1,309 @@
-<!DOCTYPE html>
-<html lang="id">
-
-<head>
-
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Celengan IoT Dashboard">
-    <meta name="author" content="">
-
-    <title>Celengan IoT - Dashboard</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
-
-    <!-- Custom styles for this template-->
-    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-</head>
-
-<body id="page-top">
-
-    <!-- Page Wrapper -->
-    <div id="wrapper">
-
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
-                </div>
-                <div class="sidebar-brand-text mx-3">Celengan Berbasis IoT</div>
-            </a>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
-
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href="/">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
-
-            <li class="nav-item active">
-                <a class="nav-link" href="/riwayat_uang_masuk">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Uang Masuk</span></a>
-            </li>
-
-            <li class="nav-item active">
-                <a class="nav-link" href="/riwayat_uang_keluar">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Uang Keluar</span></a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
-        </ul>
-
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
-            <div id="content">
-
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                        <i class="fa fa-bars"></i>
-                    </button>
-                    <div class="d-sm-flex align-items-center justify-content-between mb-6">
-                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-                    </div>
-
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin</span>
-                                <img class="img-profile rounded-circle" src="{{ url_for('static', filename='img/undraw_profile.svg') }}">
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
-                    </ul>
-                </nav>
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- Cards Row -->
-                    <div class="row">
-                        <!-- Uang Masuk Hari Ini -->
-                        <div class="col-xl-4 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Uang Masuk Hari ini
-                                            </div>
-                                            <div id="total-uang-masuk" class="h5 mb-0 font-weight-bold text-gray-800">
-                                                Memuat...
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Uang Masuk Bulan Ini -->
-                        <div class="col-xl-4 col-md-6 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Uang Masuk bulan ini
-                                            </div>
-                                            <div id="total-uang-masuk-bulanan" class="h5 mb-0 font-weight-bold text-gray-800">
-                                                Memuat...
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Total Tabungan -->
-                        <div class="col-xl-4 col-md-6 mb-4">
-                            <div class="card border-left-warning shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Total Tabungan
-                                            </div>
-                                            <div id="total-uang-masuk-seluruh" class="h5 mb-0 font-weight-bold text-gray-800">
-                                                Memuat...
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Area Chart -->
-                    <div class="row">
-                        <div class="col-xl-12 col-lg-7">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Uang Masuk Bulanan</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="chart-area">
-                                        <canvas id="grafik"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Form Ambil Uang -->
-                    <h3 class="m-3 font-weight-bold text-primary">Ambil Uang</h3>
-                    <form class="form-inline" onsubmit="return false;">
-                        <div class="form-group mx-sm-3 mb-2">
-                            <label for="inputQuantity" class="sr-only">Jumlah</label>
-                            <input type="number" class="form-control" id="inputQuantity" placeholder="Jumlah" min="1">
-                        </div>
-
-                        <button type="button" class="btn btn-primary btn-icon-split mb-2" data-toggle="modal" data-target="#confirmSubmitModal">
-                            <span class="icon text-white-50"><i class="fas fa-check"></i></span>
-                            <span class="text">Konfirmasi</span>
-                        </button>
-
-                        <div class="mx-2"></div>
-                        <a href="#" class="btn btn-danger btn-icon-split mb-2" data-toggle="modal" data-target="#confirmWithdrawModal">
-                            <span class="icon text-white-50"><i class="fas fa-trash"></i></span>
-                            <span class="text">Ambil Seluruh Uang</span>
-                        </a>
-                    </form>
-
-                    <!-- Modal Konfirmasi Submit -->
-                    <div class="modal fade" id="confirmSubmitModal" tabindex="-1" role="dialog" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Konfirmasi</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">Apakah Anda yakin ingin mengonfirmasi jumlah ini?</div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                    <button type="button" class="btn btn-primary" onclick="confirmSubmit()">Konfirmasi</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Modal Konfirmasi Ambil Semua Tabungan -->
-                    <div class="modal fade" id="confirmWithdrawModal" tabindex="-1" role="dialog" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Konfirmasi</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">Apakah Anda yakin ingin mengambil seluruh uang?</div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                    <button type="button" class="btn btn-danger" onclick="confirmWithdraw()">Ambil</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Celengan IoT 2026</span>
-                    </div>
-                </div>
-            </footer>
-
-        </div>
+{% extends "base.html" %} {% block title %}Tabunganku - Dashboard{% endblock %} {% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %} {% block content %}
+<!-- Stat Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+  <!-- Uang Masuk Hari Ini -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+    <div class="flex items-center gap-3">
+      <div
+        class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0"
+      >
+        <svg
+          class="w-5 h-5 text-primary-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          Uang Masuk Hari Ini
+        </p>
+        <p id="total-uang-masuk" class="text-xl font-bold text-gray-800 mt-0.5">
+          Memuat...
+        </p>
+      </div>
     </div>
+  </div>
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Yakin akan keluar?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Pilih "Logout" jika anda akan meninggalkan sesi ini.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="/logout">Logout</a>
-                </div>
-            </div>
-        </div>
+  <!-- Uang Masuk Bulan Ini -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+    <div class="flex items-center gap-3">
+      <div
+        class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0"
+      >
+        <svg
+          class="w-5 h-5 text-emerald-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          Uang Masuk Bulan Ini
+        </p>
+        <p
+          id="total-uang-masuk-bulanan"
+          class="text-xl font-bold text-gray-800 mt-0.5"
+        >
+          Memuat...
+        </p>
+      </div>
     </div>
+  </div>
 
-    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='vendor/chart.js/Chart.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/alert_ambil_uang_v2.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/ajax-update-realtime_v2.js') }}"></script>
+  <!-- Total Tabungan -->
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+    <div class="flex items-center gap-3">
+      <div
+        class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0"
+      >
+        <svg
+          class="w-5 h-5 text-amber-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      </div>
+      <div>
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          Total Tabungan
+        </p>
+        <p
+          id="total-uang-masuk-seluruh"
+          class="text-xl font-bold text-gray-800 mt-0.5"
+        >
+          Memuat...
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <!-- Script Chart.js Dinamis dari Endpoint Flask /api/chart_data -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var ctx = document.getElementById("grafik");
-            if (!ctx) return;
+<!-- Chart -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+  <div class="px-5 py-4 border-b border-gray-200">
+    <h2 class="text-sm font-semibold text-gray-800">Uang Masuk Bulanan</h2>
+  </div>
+  <div class="p-5">
+    <div class="h-64">
+      <canvas id="grafik"></canvas>
+    </div>
+  </div>
+</div>
 
-            fetch('/api/chart_data')
-                .then(res => res.json())
-                .then(chartData => {
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: chartData.labels || [],
-                            datasets: [{
-                                label: "Uang Masuk",
-                                lineTension: 0.3,
-                                backgroundColor: "rgba(78, 115, 223, 0.05)",
-                                borderColor: "rgba(78, 115, 223, 1)",
-                                pointRadius: 3,
-                                pointBackgroundColor: "rgba(78, 115, 223, 1)",
-                                pointBorderColor: "rgba(78, 115, 223, 1)",
-                                data: chartData.data || [],
-                            }],
-                        },
-                        options: {
-                            maintainAspectRatio: false,
-                            scales: {
-                                yAxes: [{
-                                    ticks: {
-                                        callback: function(value) {
-                                            return 'Rp ' + Number(value).toLocaleString('id-ID');
-                                        }
-                                    }
-                                }]
-                            }
-                        }
-                    });
-                })
-                .catch(err => console.error("Gagal memuat chart data:", err));
-        });
-    </script>
-</body>
-</html>
+<!-- Riwayat Uang Masuk -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+  <div
+    class="px-5 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+  >
+    <h2 class="text-sm font-semibold text-gray-800">Riwayat Uang Masuk</h2>
+    <div class="flex items-center gap-2 text-xs text-gray-500">
+      <label for="perPageMasuk">Tampilkan:</label>
+      <select
+        id="perPageMasuk"
+        onchange="changePageSizeMasuk(this.value)"
+        class="px-2 py-1 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-500 bg-white text-gray-700"
+      >
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="500">500</option>
+      </select>
+      <span>entri</span>
+    </div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-200">
+          <th
+            class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-16"
+          >
+            No
+          </th>
+          <th
+            class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >
+            Tanggal
+          </th>
+          <th
+            class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >
+            Waktu
+          </th>
+          <th
+            class="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >
+            Jumlah
+          </th>
+        </tr>
+      </thead>
+      <tbody id="data-uang-masuk" class="divide-y divide-gray-100">
+        <tr>
+          <td colspan="4" class="px-5 py-8 text-center text-gray-400">
+            Memuat data...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- Pagination Footer Masuk -->
+  <div
+    class="px-5 py-3 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600"
+  >
+    <div id="info-uang-masuk">Menampilkan 0 dari 0 data</div>
+    <div id="pagination-uang-masuk" class="flex items-center gap-1"></div>
+  </div>
+</div>
+
+<!-- Riwayat Uang Keluar -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+  <div
+    class="px-5 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+  >
+    <h2 class="text-sm font-semibold text-gray-800">Riwayat Uang Keluar</h2>
+    <div class="flex items-center gap-2 text-xs text-gray-500">
+      <label for="perPageKeluar">Tampilkan:</label>
+      <select
+        id="perPageKeluar"
+        onchange="changePageSizeKeluar(this.value)"
+        class="px-2 py-1 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-500 bg-white text-gray-700"
+      >
+        <option value="10" selected>10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="500">500</option>
+      </select>
+      <span>entri</span>
+    </div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-gray-50 border-b border-gray-200">
+          <th
+            class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide w-16"
+          >
+            No
+          </th>
+          <th
+            class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >
+            Tanggal
+          </th>
+          <th
+            class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >
+            Waktu
+          </th>
+          <th
+            class="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wide"
+          >
+            Jumlah
+          </th>
+        </tr>
+      </thead>
+      <tbody id="data-uang-keluar" class="divide-y divide-gray-100">
+        <tr>
+          <td colspan="4" class="px-5 py-8 text-center text-gray-400">
+            Memuat data...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- Pagination Footer Keluar -->
+  <div
+    class="px-5 py-3 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600"
+  >
+    <div id="info-uang-keluar">Menampilkan 0 dari 0 data</div>
+    <div id="pagination-uang-keluar" class="flex items-center gap-1"></div>
+  </div>
+</div>
+
+<!-- Form Ambil Uang -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+  <div class="px-5 py-4 border-b border-gray-200">
+    <h2 class="text-sm font-semibold text-gray-800">Ambil Uang</h2>
+  </div>
+  <div class="p-5">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <input
+        type="text"
+        id="inputQuantity"
+        inputmode="numeric"
+        placeholder="Rp 0"
+        autocomplete="off"
+        class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+      />
+      <button
+        onclick="confirmSubmit()"
+        class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+        Konfirmasi
+      </button>
+      <button
+        onclick="confirmWithdraw()"
+        class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
+        </svg>
+        Ambil Seluruh Uang
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
